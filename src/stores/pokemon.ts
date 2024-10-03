@@ -35,6 +35,44 @@ export const usePokemonStore = defineStore('pokemon', () => {
     fairy: '#D685AD'
   }
 
+  // Helper function to fetch Pokémon details, types, and evolution chain
+  async function fetchPokemonDetails(pokemonName: string) {
+    loading.value = true
+    try {
+      // Fetch Pokémon details
+      const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${pokemonName}`)
+      const data = await response.json()
+
+      // Extract types and stats from the Pokémon data
+      selectedPokemon.value = {
+        id: data.id,
+        name: data.name,
+        url: data.url,
+        stats: data.stats.map((stat: any) => ({
+          name: stat.stat.name,
+          base_stat: stat.base_stat
+        })),
+        types: data.types.map((typeInfo: any) => ({
+          name: typeInfo.type.name,
+          color: typesColors[typeInfo.type.name] || '#ccc'
+        }))
+      }
+
+      // Fetch species data to get the evolution chain URL
+      const speciesResponse = await fetch(data.species.url)
+      const speciesData = await speciesResponse.json()
+
+      // Fetch evolution chain data
+      const evolutionResponse = await fetch(speciesData.evolution_chain.url)
+      const evolutionData = await evolutionResponse.json()
+      selectedPokemon.value.evolutionChain = evolutionData.chain
+    } catch (error) {
+      console.error('Error fetching Pokémon details and evolution chain:', error)
+    } finally {
+      loading.value = false
+    }
+  }
+
   // Helper function to fetch details for each Pokémon
   async function fetchPokemonTypes(pokemon: Pokemon) {
     try {
@@ -160,5 +198,6 @@ export const usePokemonStore = defineStore('pokemon', () => {
     filterByType, // Expose the filter by type function
     paginatedPokemons,
     totalPages,
+    fetchPokemonDetails
   }
 })

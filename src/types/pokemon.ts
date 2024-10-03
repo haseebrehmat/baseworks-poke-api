@@ -8,6 +8,14 @@ export interface PokemonType {
   color?: string
 }
 
+export interface Evolution {
+  species: {
+    name: string
+    url: string
+  }
+  evolves_to?: Evolution[]
+}
+
 export interface Pokemon {
   id: number
   name: string
